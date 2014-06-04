@@ -17,11 +17,25 @@ const int intMaxLeftDegrees = 45;
 const int intResolution = 3;
 
 
+//HC-SR04 variables
+int echoPin = 11; // Echo Pin
+int trigPin = 12; // Trigger Pin
+
+int maximumRange = 400; // Maximum range needed
+int minimumRange = 2; // Minimum range needed
+
+String debugLine;
+
+
 void setup()
 {
 
   //Communication for debugging
   Serial.begin(9600);
+
+  //For Sonar device
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
 
   //attach the servo
   rudder.attach(3);
@@ -42,9 +56,6 @@ void setup()
   delay(1000);
 
 }
-
-
-
 
 
 void adjustRudderPosition(int newRudderPosition)
@@ -76,8 +87,6 @@ void adjustRudderPosition(int newRudderPosition)
 }
 
 
-
-
 void moveNavigationMotor(){
 
 
@@ -103,9 +112,6 @@ void moveNavigationMotor(){
 		}
 	}
 	
-
-	Serial.println(navigationMotorBearing);
-
 	//adjust bearing by 1 degree in appropriate direction
 	navigationMotor.write(navigationMotorBearing);
 
@@ -115,14 +121,69 @@ void moveNavigationMotor(){
 }
 
 
+long takeDistanceReading(){
+
+
+	//Serial.println("Taking Distance Reading");
+
+	long culumativeDistance = 0;
+	long distance;
+	long duration;
+
+
+	for (int i = 0; i <= 2; i++){
+
+		/* The following trigPin/echoPin cycle is used to determine the
+		distance of the nearest object by bouncing soundwaves off of it. */
+		digitalWrite(trigPin, LOW);
+		delayMicroseconds(2);
+
+		digitalWrite(trigPin, HIGH);
+		delayMicroseconds(10);
+
+		digitalWrite(trigPin, LOW);
+		duration = pulseIn(echoPin, HIGH);
+
+		//Calculate the distance (in cm) based on the speed of sound.
+		distance = duration / 58.2;
+
+		//Set some values if they are out of range
+		if (distance >= maximumRange) {
+			distance = 400;
+		}
+		else if (distance <= minimumRange) {
+			distance = 2;
+		}
+
+		culumativeDistance = culumativeDistance + distance;
+
+		//wait before taking the next reading
+		delay(50);
+		
+	}
+
+	
+	return culumativeDistance / 3;
+
+		
+}
+
+
 void loop()
 {
 
 
 	moveNavigationMotor();
 
+	long obstacles = takeDistanceReading();
+	
+	debugLine = "";
+	debugLine += "Bearing: ";
+	debugLine += navigationMotorBearing;
+	debugLine += " Distance: ";
+	debugLine += obstacles;
 
-
+	Serial.println(debugLine);
 
 	delay(250);
 
