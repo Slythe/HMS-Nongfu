@@ -2,22 +2,19 @@
 #include "Servo.h"
 
 
-const int pinRightIRDS = 0; //Right infrared distance sensor
-const int pinLeftIRDS = 1; //Left infrared distance sensor
-
-
 Servo rudder; //Servo acting as rudder controller
+Servo navigationMotor; //Servo that moves the ultrasound emitter/receiver
 
 
 int rudderPosition; //current rudder angle
+int navigationMotorBearing; //where is the ultrasound pointing
 
+bool clockwise; //which way is nav motor spinning
 
-struct DistanceSensorValues
-{
-	int LeftReading;
-	int RightReading;
-};
-
+// values to indicate how far right and left the servo should sweep and by how big a step
+const int intMaxRightDegrees = 135;
+const int intMaxLeftDegrees = 45;
+const int intResolution = 3;
 
 
 void setup()
@@ -26,47 +23,28 @@ void setup()
   //Communication for debugging
   Serial.begin(9600);
 
-  //set the pin modes
-  pinMode(pinRightIRDS, INPUT);
-  pinMode(pinLeftIRDS, INPUT);
-  
   //attach the servo
   rudder.attach(3);
+  navigationMotor.attach(10);
 
   //align the rudder straight for launch
   rudder.write(90);
+  navigationMotor.write(90);
 
-  //wait one second for the rudder to get there
+  //record positions
+  rudderPosition = 90;
+  navigationMotorBearing = 90;
+  
+  //start by looking to the right
+  clockwise = true;
+
+  //wait one second for the servos to set
   delay(1000);
 
 }
 
 
 
-DistanceSensorValues ReadCollisionSensorValues()
-{
-
-	DistanceSensorValues dVals;
-	
-	//Read twice to get a more stable value
-
-	//Read left side
-	dVals.LeftReading = analogRead(pinLeftIRDS);
-	delay(5);
-	dVals.LeftReading = analogRead(pinLeftIRDS);
-
-	//Read right side
-	dVals.RightReading = analogRead(pinRightIRDS);
-	delay(5);
-	dVals.RightReading = analogRead(pinRightIRDS);
-
-	//TODO: Currently mapped to either a 1 or 0, with better IR sensors a distance can be returned and 
-	//higher resolution returned.
-	
-	return dVals;
-
-
-}
 
 
 void adjustRudderPosition(int newRudderPosition)
@@ -98,29 +76,41 @@ void adjustRudderPosition(int newRudderPosition)
 }
 
 
-void SetCourse(DistanceSensorValues sesnsorValues)
-{
 
-	if (sesnsorValues.LeftReading == 0 && sesnsorValues.RightReading == 0)
-	{
-		//Both sides clear - full steam ahead
-		adjustRudderPosition(90);
+
+void moveNavigationMotor(){
+
+
+	if (clockwise){
+
+		if (navigationMotorBearing < intMaxRightDegrees){
+			navigationMotorBearing = navigationMotorBearing + intResolution;
+		}
+
+		if (navigationMotorBearing >= intMaxRightDegrees){
+			clockwise = false;
+		}
+		
 	}
-	else if (sesnsorValues.RightReading == 1 && sesnsorValues.LeftReading == 0)
-	{
-		//there is something on our right, change rudder to avoid collision
-		adjustRudderPosition(135);
+	else{
+
+		if (navigationMotorBearing > intMaxLeftDegrees){
+			navigationMotorBearing = navigationMotorBearing - intResolution;
+		}
+
+		if (navigationMotorBearing <= intMaxLeftDegrees){
+			clockwise = true;
+		}
 	}
-	else if (sesnsorValues.RightReading == 0 && sesnsorValues.LeftReading == 1)
-	{
-		//something of the left, move out the way
-		adjustRudderPosition(45);
-	}
-	else
-	{
-		//something in dead in front, time to reverse (not yet supported)
-		//TODO: reverse
-	}
+	
+
+	Serial.println(navigationMotorBearing);
+
+	//adjust bearing by 1 degree in appropriate direction
+	navigationMotor.write(navigationMotorBearing);
+
+	//wait for it to get there
+	delayMicroseconds(100);
 
 }
 
@@ -128,10 +118,32 @@ void SetCourse(DistanceSensorValues sesnsorValues)
 void loop()
 {
 
+
+	moveNavigationMotor();
+
+
+
+
+	delay(250);
+
+
+
 	//take a reading of the sensors
-	DistanceSensorValues dVals = ReadCollisionSensorValues();
+	//DistanceSensorValues dVals = ReadCollisionSensorValues();
 
 	//set the course appropriately
-	SetCourse(dVals);
+	//SetCourse(dVals);
+
+
+	//rudder.write(180);
+	//navigationMotor.write(180);
+
+	//delay(3000);
+
+	//rudder.write(0);
+	//navigationMotor.write(0);
+
+	//delay(3000);
+
 
 	}
