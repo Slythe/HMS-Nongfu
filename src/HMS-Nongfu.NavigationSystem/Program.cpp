@@ -12,9 +12,9 @@ int navigationMotorBearing; //where is the ultrasound pointing
 bool clockwise; //which way is nav motor spinning
 
 // values to indicate how far right and left the servo should sweep and by how big a step
-const int intMaxRightDegrees = 135;
-const int intMaxLeftDegrees = 45;
-const int intResolution = 3;
+const int intMaxRightDegrees = 125;
+const int intMaxLeftDegrees = 55;
+const int intResolution = 6;
 
 
 //HC-SR04 variables
@@ -23,6 +23,11 @@ int trigPin = 12; // Trigger Pin
 
 int maximumRange = 400; // Maximum range needed
 int minimumRange = 2; // Minimum range needed
+
+
+int sweepReadings[64];
+int sweepCount;
+
 
 String debugLine;
 
@@ -47,7 +52,7 @@ void setup()
 
   //record positions
   rudderPosition = 90;
-  navigationMotorBearing = 90;
+  navigationMotorBearing = intMaxLeftDegrees;
   
   //start by looking to the right
   clockwise = true;
@@ -87,6 +92,7 @@ void adjustRudderPosition(int newRudderPosition)
 }
 
 
+
 void moveNavigationMotor(){
 
 
@@ -94,10 +100,15 @@ void moveNavigationMotor(){
 
 		if (navigationMotorBearing < intMaxRightDegrees){
 			navigationMotorBearing = navigationMotorBearing + intResolution;
+
+			sweepCount = sweepCount + 1;
+			Serial.println(sweepCount);
+
 		}
 
 		if (navigationMotorBearing >= intMaxRightDegrees){
 			clockwise = false;
+			sweepCount = 0;
 		}
 		
 	}
@@ -121,10 +132,9 @@ void moveNavigationMotor(){
 }
 
 
+
 long takeDistanceReading(){
 
-
-	//Serial.println("Taking Distance Reading");
 
 	long culumativeDistance = 0;
 	long distance;
@@ -149,10 +159,10 @@ long takeDistanceReading(){
 
 		//Set some values if they are out of range
 		if (distance >= maximumRange) {
-			distance = 400;
+			distance = maximumRange;
 		}
 		else if (distance <= minimumRange) {
-			distance = 2;
+			distance = minimumRange;
 		}
 
 		culumativeDistance = culumativeDistance + distance;
@@ -169,6 +179,7 @@ long takeDistanceReading(){
 }
 
 
+
 void loop()
 {
 
@@ -183,28 +194,9 @@ void loop()
 	debugLine += " Distance: ";
 	debugLine += obstacles;
 
-	Serial.println(debugLine);
+	//Serial.println(debugLine);
 
-	delay(250);
+	delay(100);
 
-
-
-	//take a reading of the sensors
-	//DistanceSensorValues dVals = ReadCollisionSensorValues();
-
-	//set the course appropriately
-	//SetCourse(dVals);
-
-
-	//rudder.write(180);
-	//navigationMotor.write(180);
-
-	//delay(3000);
-
-	//rudder.write(0);
-	//navigationMotor.write(0);
-
-	//delay(3000);
-
-
+	
 	}
