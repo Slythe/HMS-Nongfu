@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <Servo/Servo.h>
+#include "Servo.h"
 
 
 const int pinRightIRDS = 0; //Right infrared distance sensor

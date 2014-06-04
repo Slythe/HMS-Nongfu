@@ -95,8 +95,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Users\Slyman\My Documents\Arduino\HMS-Nongfu\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>$(BuildToolsPath)ArduinoVisualStudioFixes.h</ForcedIncludeFiles>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -109,6 +108,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Program.cpp" />
+    <ClCompile Include="Servo.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Servo.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
