@@ -25,7 +25,7 @@ int maximumRange = 400; // Maximum range needed
 int minimumRange = 2; // Minimum range needed
 
 
-int sweepReadings[64];
+int sweepReadings[12];
 int sweepCount;
 
 
@@ -100,10 +100,6 @@ void moveNavigationMotor(){
 
 		if (navigationMotorBearing < intMaxRightDegrees){
 			navigationMotorBearing = navigationMotorBearing + intResolution;
-
-			sweepCount = sweepCount + 1;
-			Serial.println(sweepCount);
-
 		}
 
 		if (navigationMotorBearing >= intMaxRightDegrees){
@@ -179,14 +175,29 @@ long takeDistanceReading(){
 }
 
 
+void chooseBestCourse(){
+
+	int HighestValuePosition = 6;
+
+	for (int i = 0; i < 12; i++){
+
+	}
+
+
+}
+
 
 void loop()
 {
 
 
 	moveNavigationMotor();
+		
 
 	long obstacles = takeDistanceReading();
+
+	sweepReadings[sweepCount] = obstacles;
+	
 	
 	debugLine = "";
 	debugLine += "Bearing: ";
@@ -195,6 +206,18 @@ void loop()
 	debugLine += obstacles;
 
 	//Serial.println(debugLine);
+
+	if (sweepCount = 12){
+		//evaluate readings
+
+
+	}
+	else if (sweepCount > 12) {
+		sweepCount = 0;
+	}
+	
+	//increment sweep count
+	sweepCount = sweepCount + 1;
 
 	delay(100);
 
